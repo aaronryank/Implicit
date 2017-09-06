@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -718,7 +718,7 @@ void do_skip(void)
 {
     wint_t c = getwc(in);
 
-    if (c == '{') {
+    if (c == L'{') {
         int braces = 1;
         while (braces) {
             c = getwc(in);
