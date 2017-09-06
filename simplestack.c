@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -685,6 +685,12 @@ int execute(wint_t *command, int args)
         strcpy(stack[++top].val_str,"abcdefghijklmnopqrstuvwxyz");
         stack[top].type = TYPE_STR;
     }
+    else if (command[0] == L'|') {
+        int i;
+        for (i = 1; i <= top; i++)
+            memcpy(&stack[i+top],&stack[i],sizeof(struct _stack));
+        top += top;
+    }
 
     if (top >= cur_stack_size) {
         cur_stack_size += 1000;
@@ -716,6 +722,7 @@ int implicit_input(int count, int type)
 
 void do_skip(void)
 {
+    fseek(in,-1,SEEK_CUR);
     wint_t c = getwc(in);
 
     if (c == L'{') {
@@ -729,8 +736,7 @@ void do_skip(void)
         }
     }
     else {
-        while (isdigit(wctob((c = getwc(in)))))
-            continue;
+        while (isdigit(wctob(c = getwc(in))));
         ungetwc(c,in);
     }
 }
