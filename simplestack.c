@@ -433,7 +433,8 @@ int execute(wint_t *command, int args)
         while (args--)
         {
             fgets(stack[++top].val_str,999,stdin);
-            stack[top].val_str[strlen(stack[top].val_str)-1] = 0;
+            if (stack[top].val_str[strlen(stack[top].val_str-1] == '\n')
+                stack[top].val_str[strlen(stack[top].val_str)-1] = 0;
             stack[top].type = TYPE_STR;
         }
     }
@@ -756,7 +757,7 @@ int do_jump(void)
 
 /* wide-char string to int */
 
-int wcstoi(wchar_t *str)
+int wcstoi(wint_t *str)
 {
     int retval = 0;
 
