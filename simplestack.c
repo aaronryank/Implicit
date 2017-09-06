@@ -453,7 +453,9 @@ int execute(wint_t *command, int args)
     else if (command[0] == L':') {
         if (args == -1) {
             stack[top+1].val = stack[top].val;
+            stack[top+1].val_flt = stack[top].val_flt;
             stack[top+1].type = stack[top].type;
+            strcpy(stack[top+1].val_str,stack[top].val_str);
             top++;
         }
         else
@@ -690,6 +692,15 @@ int execute(wint_t *command, int args)
         for (i = 1; i <= top; i++)
             memcpy(&stack[i+top],&stack[i],sizeof(struct _stack));
         top += top;
+    }
+    else if (command[0] == 0xB8) {
+        if (stack[top].type == TYPE_STR) {
+            int i, l = strlen(stack[top].val_str);
+            for (i = 0; i < l; i++)
+                stack[top+i+1].val = stack[top].val_str[i];
+            zero(stack[top]);
+            top += l - 1;
+        }
     }
 
     if (top >= cur_stack_size) {
