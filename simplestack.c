@@ -192,18 +192,17 @@ int execute(wint_t *command, int args)
         if (top == 0)
             implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-        if ((stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT))
+        if (top > 1 && args == -1 && (stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT))
         {
-            if (args == -1 && top > 1) {
-                stack[top-1].val += stack[top].val;
-                stack[top-1].val_flt += stack[top].val_flt;
-                zero(stack[top]);
-                top--;
-            }
-            else {
-                stack[top].val += abs(args);
-                stack[top].val_flt += (float) abs(args);
-            }
+            stack[top-1].val += stack[top].val;
+            stack[top-1].val_flt += stack[top].val_flt;
+            zero(stack[top]);
+            top--;
+        }
+        else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args)
+        {
+            stack[top].val += args;
+            stack[top].val_flt += args;
         }
         else if (stack[top-1].type == TYPE_STR)
         {
@@ -222,6 +221,9 @@ int execute(wint_t *command, int args)
             stack[top].val += abs(args);
             stack[top].val_flt += abs(args);
         }
+    }
+    else if (command[0] == L'.') {
+        stack[top].val++;
     }
     else if (command[0] == L'-') {
         if (top == 0)
@@ -334,17 +336,17 @@ int execute(wint_t *command, int args)
         if (top == 0)
             implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-        if (stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT)
+        if (top > 1 && stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT && args == -1)
         {
-            if (args == -1 && top) {
-                stack[top-1].val %= stack[top].val;
-                zero(stack[top]);
-                top--;
-            }
-            else
-                stack[top].val %= args;
+            stack[top-1].val %= stack[top].val;
+            zero(stack[top]);
+            top--;
         }
-        else if (stack[top-1].type == TYPE_STR) {
+        else if (stack[top].type == TYPE_INT && args != -1)
+        {
+            stack[top].val %= args;
+        }
+        else if (stack[top].type == TYPE_STR) {
             if (args == -1)
                 args = strlen(stack[top].val_str)-1;
 
