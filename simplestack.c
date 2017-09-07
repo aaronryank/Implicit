@@ -136,6 +136,9 @@ int main(int argc, char **argv)
         else if (stack[top].type == TYPE_FLT)
             printf("%f",stack[top].val_flt);
     }
+
+    fflush(stdout);
+    fclose(in);
 }
 
 int getcommand(wint_t *buf)
@@ -164,6 +167,12 @@ int getcommand(wint_t *buf)
             while ((c = getwc(in)) != 0xBB && c != WEOF)    // »
                 buf[s++] = c;
             return COMMAND;
+        }
+        else if (c == 0xB0) { // °
+            char tmp[100] = {0};
+            itoa(stack[top].val,tmp,10);
+            mbstowcs(buf,tmp,100);
+            return ARGUMENT;
         }
         else {
             buf[s] = c;
@@ -223,6 +232,9 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == L'.') {
+        if (!top)
+            implicit_input(1,TYPE_INT);
+
         stack[top].val++;
     }
     else if (command[0] == L'-') {
@@ -451,6 +463,9 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == L':') {
+        if (args == -1 && !top)
+            implicit_input(1,TYPE_INT);
+
         if (args == -1) {
             stack[top+1].val = stack[top].val;
             stack[top+1].val_flt = stack[top].val_flt;
@@ -469,6 +484,9 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == L'\\') {
+        if (!top)
+            implicit_input(1,TYPE_STR);
+
         if (args == -1) {
             if (stack[top].type == TYPE_INT)
                 stack[top].val = -stack[top].val;
@@ -485,6 +503,15 @@ int execute(wint_t *command, int args)
 
                 strcpy(stack[top].val_str,dest);
                 free(dest);
+            }
+        }
+        else {
+            if (stack[top].type == TYPE_STR && args) {
+                int l = strlen(stack[top].val_str);
+                char *s = malloc(l * sizeof(char));
+                strcpy(s,stack[top].val_str);
+                memset(stack[top].val_str,0,STACK_STRING_SIZE);
+                strcpy(stack[top].val_str,&s[args]);
             }
         }
     }
@@ -520,6 +547,9 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == 0xA6) { // ¦
+        if (!top)
+            implicit_input(1,TYPE_STR);
+
         if (stack[top].type == TYPE_INT) {
             if (args == -1) {
                 if (isupper(stack[top].val))
@@ -552,7 +582,9 @@ int execute(wint_t *command, int args)
         }
     }
     else if (isalpha(wctob(command[0]))) {
-        stack[++top].val = command[0];
+        args = abs(args);
+        while (args--)
+            stack[++top].val = command[0];
     }
     else if (command[0] == L'\"') {
         int start;
@@ -693,13 +725,79 @@ int execute(wint_t *command, int args)
             memcpy(&stack[i+top],&stack[i],sizeof(struct _stack));
         top += top;
     }
-    else if (command[0] == 0xB8) {
-        if (stack[top].type == TYPE_STR) {
+    else if (command[0] == 0xB8) { // cedilla ¸
+        if (!top)
+            implicit_input(1,TYPE_STR);
+
+        if (stack[top].type == TYPE_STR && args == -1) {
             int i, l = strlen(stack[top].val_str);
             for (i = 0; i < l; i++)
                 stack[top+i+1].val = stack[top].val_str[i];
             zero(stack[top]);
             top += l - 1;
+        }
+    }
+    else if (command[0] == 0xE9) { // é
+        if (!top)
+            implicit_input(1,TYPE_STR);
+
+        if (stack[top].type == TYPE_STR) {
+            int i, l = strlen(stack[top].val_str);
+            for (i = 0; i < l; i++)
+                stack[top].val_str[i] += abs(args);
+        }
+        else if (stack[top].type == TYPE_INT && args == -1) {
+            if (stack[top].val)
+                return -1;
+        }
+    }
+    else if (command[0] == 0xE8) { // è
+        if (!top)
+            implicit_input(1,TYPE_STR);
+
+        if (stack[top].type == TYPE_STR && args) {
+            int i, l = strlen(stack[top].val_str);
+            for (i = 0; i < l; i++)
+                stack[top].val_str[i] -= abs(args);
+        }
+        else if (stack[top].type == TYPE_INT && args == -1) {
+            if (stack[top].val) {
+                noprint = 1;
+                return -1;
+            }
+        }
+    }
+    else if (command[0] == 0xA7) { // §
+        args = abs(args);
+
+        if (stack[top].type == TYPE_STR) {
+            char *s = strdup(stack[top].val_str);
+            memset(stack[top].val_str,0,strlen(stack[top].val_str));
+
+            while (args--)
+                strcat(stack[top].val_str,s);
+
+            stack[top].type = TYPE_STR;
+        }
+        else if (stack[top].type == TYPE_INT) {
+            int i = 0;
+            while (args--)
+                stack[top].val_str[i++] = stack[top].val;
+
+            stack[top].val = 0;
+            stack[top].type = TYPE_STR;
+        }
+    }
+    else if (command[0] == 0xB1) { // ±
+        if (!top)
+            implicit_input(1,TYPE_INT);
+
+        if (args == -1 && stack[top].type == TYPE_INT) {
+            stack[top+1].val = stack[top].val < 0 ? -1 : stack[top].val == 0 ? 0 : 1;
+            top++;
+        }
+        else if (args != -1) {
+            stack[++top].val = -args;
         }
     }
 
@@ -711,11 +809,6 @@ int execute(wint_t *command, int args)
     return 1;
 }
 
-// used commands:     `~@#$%^&*-_=\;:'"/=,[]<>
-// unused commands:   {}|.?!()
-// reserved commands: {}?!()
-// free commands:     |.
-
 int implicit_input(int count, int type)
 {
     while (count--) {
@@ -726,7 +819,8 @@ int implicit_input(int count, int type)
         else if (type == TYPE_STR)
             fgets(stack[++top].val_str,999,stdin);
 
-        stack[top].val_str[strlen(stack[top].val_str)-1] = 0;
+        if (stack[top].val_str[strlen(stack[top].val_str)-1] == '\n')
+            stack[top].val_str[strlen(stack[top].val_str)-1] = 0;
         stack[top].type = type;
     }
 }
