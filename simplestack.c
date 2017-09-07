@@ -33,7 +33,7 @@ void do_skip(void);
 int do_jump(void);
 int implicit_input(int,int);
 #ifndef _WIN32
-int itoa(int,char*,int);
+char *itoa(int,char*,int);
 #endif
 
 struct _stack {
@@ -905,7 +905,9 @@ void reverse(char str[], int length)
     int end = length -1;
     while (start < end)
     {
-        swap(*(str+start), *(str+end));
+        int tmp = str[start];
+        str[start] = str[end];
+        str[end] = tmp;
         start++;
         end--;
     }
@@ -915,7 +917,7 @@ void reverse(char str[], int length)
 char* itoa(int num, char* str, int base)
 {
     int i = 0;
-    bool isNegative = false;
+    int isNegative = 0;
  
     /* Handle 0 explicitely, otherwise empty string is printed for 0 */
     if (num == 0)
@@ -929,7 +931,7 @@ char* itoa(int num, char* str, int base)
     // base 10. Otherwise numbers are considered unsigned.
     if (num < 0 && base == 10)
     {
-        isNegative = true;
+        isNegative = 1;
         num = -num;
     }
  
