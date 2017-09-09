@@ -39,7 +39,7 @@ int/float
 
 string
 
-|command|argument x|implicit|
+|command|argument x|implicit|implicit input|
 |-|-|-|-|
 |`+`|concatenate top of stack (char or string) to previous stack string x times|concatenate top of stack (char or string) to previous stack string|two integers|
 |`-`|cut x characters off of top of stack|cut last character off top of stack|two integers|
