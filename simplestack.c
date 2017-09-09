@@ -211,11 +211,6 @@ int execute(wint_t *command, int args)
             zero(stack[top]);
             top--;
         }
-        else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
-        {
-            stack[top].val += args;
-            stack[top].val_flt += args;
-        }
         else if (stack[top-1].type == TYPE_STR)
         {
             if (stack[top].type != TYPE_STR)
@@ -286,11 +281,6 @@ int execute(wint_t *command, int args)
                 stack[top].val_flt *= (float) abs(args);
             }
         }
-        else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
-        {
-            stack[top].val *= args;
-            stack[top].val_flt *= args;
-        }
         else if (stack[top-1].type == TYPE_STR)
         {
             if (args == -1)
@@ -315,6 +305,11 @@ int execute(wint_t *command, int args)
             zero(stack[top]);
             top--;
         }
+        else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
+        {
+            stack[top].val *= args;
+            stack[top].val_flt *= args;
+        }
     }
     else if (command[0] == L'/') {
         if (top == 0)
@@ -335,8 +330,8 @@ int execute(wint_t *command, int args)
         }
         else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
         {
-            stack[top].val /= args;
-            stack[top].val_flt /= args;
+            args && (stack[top].val /= args);
+            args && (stack[top].val_flt /= args);
         }
         else if (stack[top-1].type == TYPE_STR)
         {
@@ -739,6 +734,9 @@ int execute(wint_t *command, int args)
             zero(stack[top]);
             top += l - 1;
         }
+        else if (stack[top].type == TYPE_INT && args == -1) {
+            stack[top].val--;
+        }
     }
     else if (command[0] == 0xE9) { // é
         if (!top)
@@ -802,6 +800,56 @@ int execute(wint_t *command, int args)
         else if (args != -1) {
             stack[++top].val = -args;
         }
+    }
+    else if (command[0] == 0xA1) { // ¡
+        if (!top && args == -1)
+            implicit_input(1,TYPE_INT);
+
+        if (stack[top].type == TYPE_INT) {
+            if (args == -1)
+                args = stack[top].val;
+
+            int i, n = args;
+            for (i = 0; i < n; i++)
+                stack[top+i].val = i+1;
+            top += (i - 1);
+        }
+    }
+    else if (command[0] == 0xDE) { // Þ
+        if (!top && args == -1)
+            implicit_input(1,TYPE_INT);
+
+        if (args == -1)
+            args = top;
+
+        int sum = 0;
+        while (args--) {
+            sum += stack[top].val;
+            zero(stack[top]);
+            top--;
+        }
+        stack[++top].val = sum;
+    }
+    else if (command[0] == 0xEC) { // ì
+        if (!top && args == -1)
+            implicit_input(1,TYPE_INT);
+
+        if (stack[top].type == TYPE_INT && args == -1) {
+            itoa(stack[top].val,stack[top].val_str,10);
+            stack[top].type = TYPE_STR;
+        }
+        else if (stack[top].type == TYPE_STR && args == -1) {
+            stack[top].val = atoi(stack[top].val_str);
+            stack[top].type = TYPE_INT;
+        }
+        else if (args != -1) {
+            itoa(args,stack[top+1].val_str,10);
+            stack[top+1].type = TYPE_STR;
+            top++;
+        }
+    }
+    else if (command[0] == '`') {
+        printf("%s",stack[top].type == TYPE_INT ? "int" : stack[top].type == TYPE_STR ? "string" : "float");
     }
 
     if (top >= cur_stack_size) {
