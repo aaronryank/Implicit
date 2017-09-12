@@ -22,20 +22,19 @@ int/float
 |`-`|subtract x from top of stack|pop top two stack values, subtract, push result. if top two values are not int, decrement|two integers|
 |`/`|divide top of stack by x|pop top two stack values, divide, push result|two integers|
 |`*`|multiply top of stack by x|pop top two stack values, multiply, push result|two integers|
-|`_`|top of stack equals top of stack mod x|pop top two stack values, modulo, push result|two integers|
+|`_`|modulo top of stack by x|pop top two stack values, modulo, push result|two integers|
 |`^`|raise top of stack by x|raise top of stack by 2|integer|
 |`>`|push top stack value > x|push previous stack value > top stack value|two integers|
 |`<`|push top stack value < x|push previous stack value < top stack value|two integers|
 |`\\`|UNUSED|invert sign of top of stack|string|
-|`.`|UNUSED|fail-safe increment top of stack|integer|
+|`.`|UNUSED|fail-safe increment top of stack|integer if implicit, string otherwise|
 |`¦`|if x is 1, change to lowercase, if x is 2, change to uppercase|swap case|string|
 |`¸`|UNUSED|fail-safe decrement top of stack|string|
 |`é`|exit with implicit output if top of stack == x|exit with implicit output if top of stack truthy|string|
 |`è`|exit without implicit output if top of stack == x|exit without implicit output if top of stack truthy|string|
 |`±`|push negative x|push sign of top of stack (-1 for negative, 0 for 0, 1 for positive)|integer|
 |`¡`|push 1..x|x = top of stack|integer|
-|`Þ`|sum the top x stack values|sum the entire stack|integer|
-|`ì`|UNUSED|convert top of stack to string|undecided|
+|`ì`|push x as string|convert top of stack to string|integer|
 
 string
 
@@ -50,20 +49,22 @@ string
 |`>`|push string length of top stack value > x|push string length of previous stack value > string length of top stack value|two integers|
 |`<`|push string length of top stack value < x|push string length of previous stack value < string length of top stack value|two integers|
 |`\\`|chop x characters off front of string|reverse string|string|
-|`.`|UNUSED|UNUSED|integer|
-|`¦`|if x is 1, change to lowercase, if x is 2, change to uppercase|if first character lowercase, change to uppercase, vice versa|string|
+|`.`|split top stack string into chunks of x|UNUSED|integer if implicit, string otherwise|
+|`¦`|if x is 1, change to lowercase, if x is 2, change to uppercase|swap case of all characters in top stack string|string|
 |`¸`|UNUSED|pop string, push each character individually|string|
 |`é`|increment each character in string by x (e.g. x = 1: a becomes b, * becomes +, etc)|x = 1|string|
 |`è`|decrement each character in string by x (e.g. x = 1: b becomes a, + becomes *, etc)|x = 1|string|
-|`ì`|UNUSED|convert top stack string to integer|undecided|
+|`±`|push negative x|UNUSED|integer|
+|`¡`|push 1..x|UNUSED|integer|
+|`ì`|push x as string|convert top stack string to integer|integer|
 
 any
 
-|command|argument x|implicit|implicit input|
-|-|-|-|-|
+|command|argument x|implicit|
+|-|-|-|
 |`%`|print x as integer|print top of stack as default type|
 |`@`|print x as ASCII|print top of stack as ASCII (null byte if non-integer)|
-|`&`|exit program without implicit output if x is truthy|exit program without implicit output|
+|`&`|UNUSED|exit program without implicit output|
 |`~`|read x characters, push to stack|read character, push to stack|
 |`$`|read x integers, push to stack|read integer, push to stack|
 |`'`|read x newline-delimited strings, push to stack| read newline-delimited string, push to stack|
@@ -75,7 +76,10 @@ any
 |`;`|pop x values from stack|pop top of stack|
 |`[`|UNUSED|pop top of stack into register|
 |`]`|UNUSED|pull register onto stack|
-|`§`|duplicate x times, perform `"x`|perform `"1`|
+|`§`|duplicate top of stack x times, perform `"x`|perform `"1`|
+|`` ` ``|print the top x stack values (0 to print the entire stack)|debugging info (print type of top of stack)|
+|`Þ`|pop and sum the top x stack values|pop and sum the entire stack|integer|
+|`ß`|1- print newline|"space" print a space|
 
 # Guesswork
 
