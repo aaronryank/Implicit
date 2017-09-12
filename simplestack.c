@@ -909,6 +909,23 @@ int execute(wint_t *command, int args)
 
         putchar(" \n"[args]);
     }
+    /* THESE ARE TEMPORARY */
+    else if (command[0] == 0x1F) { // ñ (NOT)
+        if (!top && !args)
+            implicit_input(1,TYPE_INT);
+
+        int x = !stack[top].val;
+        stack[top].val = x;
+    }
+    else if (command[0] == 0xB7) { // · XOR
+        if (!top && args)
+            implicit_input(2,TYPE_INT);
+
+        int x = stack[top-1].val ^ stack[top].val;
+        stack[top-1].val = x;
+        zero(stack[top]);
+        top--;
+    }
 
     if (top >= cur_stack_size) {
         cur_stack_size += 1000;
