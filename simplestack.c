@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <wchar.h>
@@ -16,6 +17,7 @@ enum {
 
 struct {
   int cp; // codepage
+  int db; // debugging
 } flags;
 
 FILE *in;
@@ -32,6 +34,7 @@ int execute(wint_t*,int);
 void do_skip(void);
 int do_jump(void);
 int implicit_input(int,int);
+void debug(wint_t*,int);
 #ifndef _WIN32
 char *itoa(int,char*,int);
 #endif
@@ -75,7 +78,8 @@ int main(int argc, char **argv)
     for (i = 0; i < n; i++) {
         switch(argv[1][i]) {
           case 's': flags.cp = CP_SBCS; break;
-          default:  flags.cp = CP_UTF8; break;
+          case 'u': flags.cp = CP_UTF8; break;
+          case 'd': flags.db = 1;       break;
         }
     }
 
@@ -98,17 +102,12 @@ int main(int argc, char **argv)
     {
         int type = getcommand(buf);
 
-        //printf("<%s>",buf);
-
         if (type == ARGUMENT) {
             loop = !!loop + execute(command,wcstoi(buf));
             args++;
         }
         else if (type == COMMAND) {
             loop = !!wcscmp(buf,L"EOF");   // truncate to bool
-
-            //if (!loop)
-            //    printf("EOF with %s\n",command);
 
             if (!args) {
                 int retval = execute(command,-1);
@@ -196,8 +195,13 @@ int getcommand(wint_t *buf)
 
 int execute(wint_t *command, int args)
 {
+    int orig_args = args; // for debugging, some commands modify args
+
     if (!wcscmp(command,L"EOF")) {
-        //printf("EOF");
+        if (jumpnum) {
+            jumps[jumpnum].val = -1;
+            return do_jump();
+        }
         return 0;
     }
     else if (command[0] == L'+') {
@@ -230,10 +234,34 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == L'.') {
-        if (!top)
+        if (!top && args == -1)
             implicit_input(1,TYPE_INT);
+        else if (!top && args != -1)
+            implicit_input(1,TYPE_STR);
 
-        stack[top].val++;
+        if (stack[top].type == TYPE_INT && args == -1)
+            stack[top].val++;
+        else if (stack[top].type == TYPE_STR && args != -1) {
+            int i, l = strlen(stack[top].val_str);
+
+            if (args >= l)
+                return 1;
+
+            char s[STACK_STRING_SIZE] = {0};
+            strcpy(s,stack[top].val_str);
+            memset(stack[top].val_str,0,STACK_STRING_SIZE);
+
+            for (i = 0; l > 0; i++) {
+                stack[top+i].type = TYPE_STR;
+                strncpy(stack[top+i].val_str,s,args);
+
+                strncpy(s,&s[(i+1)*args],args);
+
+                l -= args;
+            }
+
+            top += (i - 1); // dafuq?
+        }
     }
     else if (command[0] == L'-') {
         if (top == 0)
@@ -492,8 +520,7 @@ int execute(wint_t *command, int args)
                 stack[top].val_flt = -stack[top].val_flt;
             else {
                 int i, j = strlen(stack[top].val_str);
-                char *dest = malloc((j+1)*sizeof(char));
-                memset(dest,0,j+1);
+                char *dest = strdup(stack[top].val_str);
 
                 for (i = 0; i < j; i++)
                     dest[i] = stack[top].val_str[j-i-1];  // -1 because j is 1-indexed
@@ -506,10 +533,10 @@ int execute(wint_t *command, int args)
         else {
             if (stack[top].type == TYPE_STR && args) {
                 int l = strlen(stack[top].val_str);
-                char *s = malloc(l * sizeof(char));
-                strcpy(s,stack[top].val_str);
+                char *s = strdup(stack[top].val_str);
                 memset(stack[top].val_str,0,STACK_STRING_SIZE);
                 strcpy(stack[top].val_str,&s[args]);
+                free(s);
             }
         }
     }
@@ -564,12 +591,13 @@ int execute(wint_t *command, int args)
             int i;
             if (args == -1)
             {
-                if (isupper(stack[top].val_str[0]))
-                    for (i = 0; stack[top].val_str[i]; i++)
+                int l = strlen(stack[top].val_str);
+                for (i = 0; i < l; i++) {
+                    if (isupper(stack[top].val_str[i]))
                         stack[top].val_str[i] = tolower(stack[top].val_str[i]);
-                else if (islower(stack[top].val_str[0]))
-                    for (i = 0; stack[top].val_str[i]; i++)
+                    else if (islower(stack[top].val_str[i]))
                         stack[top].val_str[i] = toupper(stack[top].val_str[i]);
+                }
             }
             else if (args == 1)
                 for (i = 0; stack[top].val_str[i]; i++)
@@ -713,6 +741,10 @@ int execute(wint_t *command, int args)
             return do_jump();
         }
     }
+    else if (command[0] == 0xB6) { // ¶
+        jumps[jumpnum].val = -1;
+        return do_jump();
+    }
     else if (command[0] == 0xC0) {
         strcpy(stack[++top].val_str,"abcdefghijklmnopqrstuvwxyz");
         stack[top].type = TYPE_STR;
@@ -849,13 +881,42 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == '`') {
-        printf("%s",stack[top].type == TYPE_INT ? "int" : stack[top].type == TYPE_STR ? "string" : "float");
+        if (args == -1)
+            printf("%s",stack[top].type == TYPE_INT ? "int" : stack[top].type == TYPE_STR ? "string" : "float");
+        else {
+            if (args == 0)
+                args = 1;
+            else
+                args = top - args;
+
+            while (args < top) {
+                if (stack[args].type == TYPE_INT)
+                    printf("%d",stack[args].val);
+                else if (stack[args].type == TYPE_STR)
+                    printf("%s",stack[args].val_str);
+                else if (stack[args].type == TYPE_FLT)
+                    printf("%f",stack[args].val_flt);
+
+                args++;
+                if (args <= top)
+                    putchar(' ');
+            }
+        }
+    }
+    else if (command[0] == 0xDF) { // ß (s)
+        if (args == -1)
+            args = 0;
+
+        putchar(" \n"[args]);
     }
 
     if (top >= cur_stack_size) {
         cur_stack_size += 1000;
         stack = realloc(stack,cur_stack_size * sizeof(struct _stack));
     }
+
+    if (flags.db)
+        debug(command,orig_args);
 
     return 1;
 }
@@ -905,13 +966,19 @@ int do_jump(void)
 
     if (jumps[jumpnum-1].val == -1)
         j1 = 1;
-    else
-        j1 = stack[jumps[jumpnum-1].val].val;
+    else {
+        struct _stack j1s;
+        memcpy(&j1s,&stack[jumps[jumpnum-1].val],sizeof(struct _stack));
+        j1 = j1s.type == TYPE_STR ? strlen(j1s.val_str) : j1s.type == TYPE_FLT ? j1s.val_flt : j1s.type == TYPE_INT ? j1s.val : 0;
+    }
 
     if (jumps[jumpnum].val == -1)
         j2 = 1;
-    else
-        j2 = stack[jumps[jumpnum].val].val;
+    else {
+        struct _stack j2s;
+        memcpy(&j2s,&stack[jumps[jumpnum].val],sizeof(struct _stack));
+        j2 = j2s.type == TYPE_STR ? strlen(j2s.val_str) : j2s.type == TYPE_FLT ? j2s.val_flt : j2s.type == TYPE_INT ? j2s.val : 0;
+    }
 
     //printf("do_jump with %d and %d\n",j1,j2);
 
@@ -927,6 +994,29 @@ int do_jump(void)
         jumpnum--;
         return 0;
     }
+}
+
+void debug(wint_t *command, int args)
+{
+    printf("%S",command);
+    if (args != -1)
+        printf("%d",args);
+
+    putchar('\t');
+    int i;
+    for (i = 1; i <= top; i++) {
+        if (stack[i].type == TYPE_INT)
+            printf("%d",stack[i].val);
+        else if (stack[i].type == TYPE_STR)
+            printf("%s",stack[i].val_str);
+        else if (stack[i].type == TYPE_FLT)
+            printf("%f",stack[i].val_flt);
+
+        if (i != top)
+            printf(", ");
+    }
+    putchar('\n');
+    sleep(1);
 }
 
 /* wide-char string to int */
