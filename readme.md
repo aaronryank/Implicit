@@ -35,6 +35,8 @@ int/float
 |`±`|push negative x|push sign of top of stack (-1 for negative, 0 for 0, 1 for positive)|integer|
 |`¡`|push 1..x|x = top of stack|integer|
 |`ì`|push x as string|convert top of stack to string|integer|
+|`½`|push log2(x)|top of stack = log2(top of stack)|float|
+|`ö`|UNUSED|UNUSED|float|
 
 string
 
@@ -57,11 +59,19 @@ string
 |`±`|push negative x|UNUSED|integer|
 |`¡`|push 1..x|UNUSED|integer|
 |`ì`|push x as string|convert top stack string to integer|integer|
+|`ö`|UNUSED|UNUSED|float|
+
+float
+
+|command|argument x|implicit|implicit input|
+|-|-|-|-|
+|`½`|push log2(x)|top of stack = log2(top of stack)|float|
+|`ö`|UNUSED|push is-whole(top of stack)|float|
 
 any
 
-|command|argument x|implicit|
-|-|-|-|
+|command|argument x|implicit|implicit input|
+|-|-|-|-|
 |`%`|print x as integer|print top of stack as default type|
 |`@`|print x as ASCII|print top of stack as ASCII (null byte if non-integer)|
 |`&`|UNUSED|exit program without implicit output|
@@ -80,6 +90,8 @@ any
 |`` ` ``|print the top x stack values (0 to print the entire stack)|debugging info (print type of top of stack)|
 |`Þ`|pop and sum the top x stack values|pop and sum the entire stack|integer|
 |`ß`|1- print newline|"space" print a space|
+|`¯`|equivalent to `[x]`|equivalent to `[]`|
+|`©`|consume all input as integers if x == 1 and strings if x == 2, push to stack|consume all input as ASCII, push to stack|all|
 
 # Guesswork
 
