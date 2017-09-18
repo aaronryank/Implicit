@@ -27,7 +27,7 @@ int/float
 |`>`|push top stack value > x|push previous stack value > top stack value|two integers|
 |`<`|push top stack value < x|push previous stack value < top stack value|two integers|
 |`\\`|UNUSED|invert sign of top of stack|string|
-|`.`|UNUSED|fail-safe increment top of stack|integer if implicit, string otherwise|
+|`.`|UNUSED|fail-safe increment top of stack|integer|
 |`¦`|if x is 1, change to lowercase, if x is 2, change to uppercase|swap case|string|
 |`¸`|UNUSED|fail-safe decrement top of stack|string|
 |`é`|exit with implicit output if top of stack == x|exit with implicit output if top of stack truthy|string|
@@ -36,6 +36,7 @@ int/float
 |`¡`|push 1..x|x = top of stack|integer|
 |`ì`|push x as string|convert top of stack to string|integer|
 |`½`|push log2(x)|top of stack = log2(top of stack)|float|
+|`Á`|push log10(x)|top of stack = log10(top of stack)|float|
 |`ö`|UNUSED|UNUSED|float|
 
 string
@@ -51,7 +52,7 @@ string
 |`>`|push string length of top stack value > x|push string length of previous stack value > string length of top stack value|two integers|
 |`<`|push string length of top stack value < x|push string length of previous stack value < string length of top stack value|two integers|
 |`\\`|chop x characters off front of string|reverse string|string|
-|`.`|split top stack string into chunks of x|UNUSED|integer if implicit, string otherwise|
+|`.`|UNUSED|UNUSED|integer|
 |`¦`|if x is 1, change to lowercase, if x is 2, change to uppercase|swap case of all characters in top stack string|string|
 |`¸`|UNUSED|pop string, push each character individually|string|
 |`é`|increment each character in string by x (e.g. x = 1: a becomes b, * becomes +, etc)|x = 1|string|
@@ -60,6 +61,7 @@ string
 |`¡`|push 1..x|UNUSED|integer|
 |`ì`|push x as string|convert top stack string to integer|integer|
 |`ö`|UNUSED|UNUSED|float|
+|`×`|split top stack string into chunks of x|split second-to-top stack string into chunks of top stack int|string|
 
 float
 
@@ -67,6 +69,7 @@ float
 |-|-|-|-|
 |`½`|push log2(x)|top of stack = log2(top of stack)|float|
 |`ö`|UNUSED|push is-whole(top of stack)|float|
+|`Á`|push log10(x)|top of stack = log10(top of stack)|float|
 
 any
 
