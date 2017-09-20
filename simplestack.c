@@ -834,8 +834,13 @@ int execute(wint_t *command, int args)
                 stack[top].val_str[i] += abs(args);
         }
         else if (stack[top].type == TYPE_INT && args == -1) {
-            if (stack[top].val)
-                return -1;
+            if (args != -1) {
+                if (stack[top].val == args)
+                    return -1;
+            } else {
+                if (stack[top].val)
+                    return -1;
+            }
         }
     }
     else if (command[0] == 0xE8) { // è
@@ -848,9 +853,16 @@ int execute(wint_t *command, int args)
                 stack[top].val_str[i] -= abs(args);
         }
         else if (stack[top].type == TYPE_INT && args == -1) {
-            if (stack[top].val) {
-                noprint = 1;
-                return -1;
+            if (args != -1) {
+                if (stack[top].val == args) {
+                    noprint = 1;
+                    return -1;
+                }
+            } else {
+                if (stack[top].val) {
+                    noprint = 1;
+                    return -1;
+                }
             }
         }
     }
