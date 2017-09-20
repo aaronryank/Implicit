@@ -964,7 +964,7 @@ int execute(wint_t *command, int args)
         ssputchar(" \n"[args]);
     }
     /* THESE ARE TEMPORARY */
-    else if (command[0] == 0x1F) { // ñ (NOT)
+    else if (command[0] == 0xF1) { // ñ (NOT)
         if (!top && !args)
             implicit_input(1,TYPE_INT);
 
