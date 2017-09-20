@@ -1113,9 +1113,16 @@ int execute(wint_t *command, int args)
             stack[++top].val = x;
         }
         else if (stack[top].type == TYPE_INT && args == -1) {
-            if (!stack[top].val) {
-                noprint = 1;
-                return -1;
+            if (args != -1) {
+                if (stack[top].val != args) {
+                    noprint = 1;
+                    return -1;
+                }
+            } else {
+                if (!stack[top].val) {
+                    noprint = 1;
+                    return -1;
+                }
             }
         }
     }
@@ -1209,6 +1216,15 @@ int execute(wint_t *command, int args)
         if (stack[top].val != args) {
             printf("stack = %d  args = %d\n",stack[top].val,args);
             do_skip(args);
+        }
+    }
+    else if (command[0] == 0xF5) {
+        if (args != -1) {
+            if (stack[top].val != args)
+                noprint = 1;
+        } else {
+            if (!stack[top].val)
+                noprint = 1;
         }
     }
     
