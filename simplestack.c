@@ -117,6 +117,8 @@ int main(int argc, char **argv)
     wint_t buf[INPUT_BUFFER_SIZE] = {(wint_t)0};
     wint_t command[INPUT_BUFFER_SIZE] = {(wint_t)0};
 
+    wcscpy(command,L"UNINITIALIZED");
+
     while (loop)
     {
         int type = getcommand(buf);
@@ -239,6 +241,10 @@ int execute(wint_t *command, int args)
             return do_jump();
         }
         return 0;
+    }
+    else if (!wcscmp(command,L"UNINITIALIZED")) {
+        if (args != -1)
+            stack[++top].val = args;
     }
     else if (command[0] == L'+') {
         if (top == 0)
