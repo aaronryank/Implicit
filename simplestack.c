@@ -502,9 +502,9 @@ int execute(wint_t *command, int args)
     }
     else if (command[0] == L'@') {
         if (args == -1)
-            ssprintf("%c",stack[top].val % 128);
+            ssprintf("%c",stack[top].val);
         else
-            ssprintf("%c",args % 128);
+            ssprintf("%c",args);
     }
     else if (command[0] == L'&') {
         if (args) {
