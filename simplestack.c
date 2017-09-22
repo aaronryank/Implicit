@@ -1233,22 +1233,6 @@ int execute(wint_t *command, int args)
                 noprint = 1;
         }
     }
-    
-
-/*
-    else if (command[0] == L'\n') {
-        if (!flags.nn)
-            ssputchar('\n');
-    }
-    else if (command[0] == L' ') {
-        if (!flags.nn)
-            ssputchar(' ');
-    }
-    else if (command[0] == L'\t') {
-        if (!flags.nn)
-            ssputchar('\t');
-    }
-*/
     else if (command[0] == 0xFE) { // þ reverse canvas
         if (flags.cn) {
             int i, j = strlen(outbuf);
@@ -1260,6 +1244,18 @@ int execute(wint_t *command, int args)
 
             strcpy(outbuf,dest);
             free(dest);
+        }
+    }
+    else if (command[0] == 0xFF) { // ÿ push as binary
+        if (!top && args == -1)
+            implicit_input(1,TYPE_INT);
+
+        if (stack[top].type == TYPE_INT && args == -1) {
+            int x = stack[top].val;
+            char *s = malloc(42*sizeof(char));
+            itoa(x,s,2);
+            stack[++top].val = atoi(s);
+            free(s);
         }
     }
 
