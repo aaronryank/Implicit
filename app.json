@@ -1,0 +1,14 @@
+{
+  "name": "SimpleStack",
+  "description": "SimpleStack is a programming language used for code golf.",
+  "keywords": [
+    "simple",
+    "stack",
+    "simplestack",
+    "c",
+    "esoteric",
+    "codegolf"
+  ],
+  "website": "https://git.io/sS",
+  "repository": "https://github.com/aaronryank/simplestack"
+}
