@@ -8,6 +8,7 @@
 #include <locale.h>
 #include <math.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 
 #define STACK_STRING_SIZE 1000
 #define INPUT_BUFFER_SIZE 1000
@@ -43,6 +44,7 @@ int do_jump(void);
 int implicit_input(int,int);
 void debug(wint_t*,int);
 void stack_realloc(void);
+int coolstuff(void);
 #ifndef _WIN32
 char *itoa(int,char*,int);
 #endif
@@ -104,6 +106,11 @@ int main(int argc, char **argv)
         fprintf(stderr,"Error %d: Cannot open file %s: %s\n",errno,argv[2],strerror(errno));
         return 2;
     }
+
+    struct stat sb;
+    stat(argv[2], &sb);
+    if (sb.st_size == 0)
+        return coolstuff();
 
     outbuf = malloc(1000*sizeof(char));
     memset(outbuf,0,1000);
@@ -1481,3 +1488,9 @@ char* itoa(int num, char* str, int base)
     return str;
 }
 #endif
+
+// what to do upon empty program   https://codegolf.stackexchange.com/a/11423/61563
+int coolstuff(void)
+{
+    int c;float a,b;scanf("%f",&a);while(scanf("%s%f",&c,&b)!=-1)c=='+'?a+=b:c=='-'?(a-=b):c=='*'?(a*=b):(a/=b);printf("%f",a);
+}
