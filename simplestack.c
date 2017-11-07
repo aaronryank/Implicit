@@ -1265,6 +1265,17 @@ int execute(wint_t *command, int args)
             free(s);
         }
     }
+    else if (command[0] == 0xD8) { // Ø push strcmp
+        if (!top && args == -1)
+            implicit_input(2,TYPE_STR);
+        else if (top == 1 && args == -1)
+            implicit_input(1,TYPE_STR);
+
+        if (stack[top-1].type == TYPE_STR && stack[top].type == TYPE_STR) {
+            stack[top+1].val = strcmp(stack[top-1].val_str,stack[top].val_str);
+            top++;
+        }
+    }
 
     stack_realloc();
 
