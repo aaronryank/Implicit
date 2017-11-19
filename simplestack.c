@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -1121,7 +1121,7 @@ int execute(wint_t *command, int args)
             implicit_input(1,TYPE_FLT);
 
         if (stack[top].type == TYPE_FLT && args == -1) {
-            int x = floor(stack[top].val_flt) == ceil(stack[top].val_flt);
+            int x = (floor(stack[top].val_flt) == ceil(stack[top].val_flt)) && (stack[top].val_flt >= 0);
 
             stack[++top].val = x;
         }
