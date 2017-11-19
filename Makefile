@@ -8,7 +8,7 @@ EXE    := simplestack
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(EXE)
+	$(CC) $(CFLAGS) $(OBJ) -o $(EXE) -lm
 
 clean:
 	rm -f $(OBJ)
