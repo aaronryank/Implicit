@@ -529,6 +529,13 @@ int execute(wint_t *command, int args)
         while (args--)
             scanf("%d",&stack[++top].val);  // int type by default
     }
+    else if (command[0] == L'÷') {   // ÷ read float
+        args = abs(args);
+        while (args--) {
+            scanf("%f",&stack[++top].val_flt);
+            stack[top].type = TYPE_FLT;
+        }
+    }
     else if (command[0] == L'\'') {
         args = abs(args);
         while (args--)
