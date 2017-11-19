@@ -471,20 +471,19 @@ int execute(wint_t *command, int args)
 
         if (args == -1)
         {
-            float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : stack[top-1].val;
-            float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : stack[top].val;
+            float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : (float) stack[top-1].val;
+            float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : (float) stack[top].val;
 
-            stack[top+1].val = (f1 < f2);
+            stack[++top].val = (f1 < f2);
         }
         else {
             if (stack[top].type == TYPE_INT)
-                stack[top+1].val = (stack[top].val < args);
+                stack[++top].val = (stack[top].val < args);
             else if (stack[top].type == TYPE_FLT)
-                stack[top+1].val = (stack[top].val_flt < args);
+                stack[++top].val = (stack[top].val_flt < args);
             else if (stack[top].type == TYPE_STR)
-                stack[top+1].val = (strlen(stack[top].val_str) < args);
+                stack[++top].val = (strlen(stack[top].val_str) < args);
         }
-        top++;
     }
     else if (command[0] == L'>') {
         if (top == 0)
@@ -492,8 +491,8 @@ int execute(wint_t *command, int args)
 
         if (args == -1)
         {
-            float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : stack[top-1].val;
-            float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : stack[top].val;
+            float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : (float) stack[top-1].val;
+            float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : (float) stack[top].val;
 
             stack[top+1].val = (f1 > f2);
         }
