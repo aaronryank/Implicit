@@ -160,9 +160,7 @@ int getcommand(wint_t *buf)
     return COMMAND;
 }
 
-
-
-int implicit_input(int count, int type)
+void implicit_input(int count, int type)
 {
     while (count--) {
         if (type == TYPE_INT)
@@ -199,8 +197,6 @@ void do_skip(int args)
         skip = 1;
     }
 }
-
-#define clear_jump(off) memset(&jumps[jumpnum+off],0,sizeof(struct _jump))
 
 int do_jump(void)
 {
@@ -318,67 +314,9 @@ int wcstoi(wint_t *str)
     return retval;
 }
 
-#ifndef _WIN32
-/* A utility function to reverse a string, credit to http://www.geeksforgeeks.org/implement-itoa/  */
-void reverse(char str[], int length)
-{
-    int start = 0;
-    int end = length -1;
-    while (start < end)
-    {
-        int tmp = str[start];
-        str[start] = str[end];
-        str[end] = tmp;
-        start++;
-        end--;
-    }
-}
- 
-// Implementation of itoa()
-char* itoa(int num, char* str, int base)
-{
-    int i = 0;
-    int isNegative = 0;
- 
-    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
-    if (num == 0)
-    {
-        str[i++] = '0';
-        str[i] = '\0';
-        return str;
-    }
- 
-    // In standard itoa(), negative numbers are handled only with 
-    // base 10. Otherwise numbers are considered unsigned.
-    if (num < 0 && base == 10)
-    {
-        isNegative = 1;
-        num = -num;
-    }
- 
-    // Process individual digits
-    while (num != 0)
-    {
-        int rem = num % base;
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0';
-        num = num/base;
-    }
- 
-    // If number is negative, append '-'
-    if (isNegative)
-        str[i++] = '-';
- 
-    str[i] = '\0'; // Append string terminator
- 
-    // Reverse the string
-    reverse(str, i);
- 
-    return str;
-}
-#endif
-
 // what to do upon empty program   https://codegolf.stackexchange.com/a/11423/61563
 int coolstuff(void)
 {
-    int c;float a,b;scanf("%f",&a);while(scanf("%s%f",&c,&b)!=-1)c=='+'?a+=b:c=='-'?(a-=b):c=='*'?(a*=b):(a/=b);printf("%f",a);
+    char c;float a,b;scanf("%f",&a);while(scanf("%c%f",&c,&b)!=-1)c=='+'?a+=b:c=='-'?(a-=b):c=='*'?(a*=b):(a/=b);printf("%f",a);
+    return 0;
 }

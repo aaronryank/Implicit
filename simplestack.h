@@ -32,6 +32,7 @@ enum {
 #define STACK_STRING_SIZE 1000
 #define INPUT_BUFFER_SIZE 1000
 
+#define clear_jump(off) memset(&jumps[jumpnum+off],0,sizeof(struct _jump))
 #define zero(x) memset(&x,0,sizeof(x));
 #define ssprintf(...) flags.cn ? append_to_outbuf(__VA_ARGS__) : printf(__VA_ARGS__)
 #define ssputchar(x) flags.cn ? append_to_outbuf("%c",x) : putchar(x)
@@ -42,7 +43,7 @@ int getcommand(wint_t*);
 int execute(wint_t*,int);
 void do_skip(int);
 int do_jump(void);
-int implicit_input(int,int);
+void implicit_input(int,int);
 void debug(wint_t*,int);
 void stack_realloc(void);
 int coolstuff(void);
