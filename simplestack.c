@@ -430,8 +430,10 @@ int execute(wint_t *command, int args)
         }
     }
     else if (command[0] == L'_') {
-        if (top == 0)
-            implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+        if (top == 0 && args == -1)
+            implicit_input(2,TYPE_INT);
+        else if (top == 1 || (top == 0 && args != -1))
+            implicit_input(1,TYPE_INT);
 
         if (top > 1 && stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT && args == -1)
         {
@@ -494,15 +496,15 @@ int execute(wint_t *command, int args)
             float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : (float) stack[top-1].val;
             float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : (float) stack[top].val;
 
-            stack[top+1].val = (f1 > f2);
+            stack[++top].val = (f1 > f2);
         }
         else {
             if (stack[top].type == TYPE_INT)
-                stack[top+1].val = (stack[top].val > args);
+                stack[++top].val = (stack[top].val > args);
             else if (stack[top].type == TYPE_FLT)
-                stack[top+1].val = (stack[top].val_flt > args);
+                stack[++top].val = (stack[top].val_flt > args);
             else if (stack[top].type == TYPE_STR)
-                stack[top+1].val = (strlen(stack[top].val_str) > args);
+                stack[++top].val = (strlen(stack[top].val_str) > args);
         }
         top++;
     }
