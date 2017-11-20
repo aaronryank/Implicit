@@ -21,9 +21,20 @@
         (stack[top+off].type == TYPE_FLT)
 
 #define type_num(off) \
-        (stack[top+off].type == TYPE_INT || stack[top+off].type == TYPE_FLT)
+        (type_int(off) || type_flt(off))
+
+#define type(off) stack[top+off].type
 
 #define implicit (args == -1)
+
+#define val_int(off) \
+        stack[top+off].val
+
+#define val_flt(off) \
+        stack[top+off].val_flt
+
+#define val_str(off) \
+        stack[top+off].val_str
 
 extern int exec_command_add(int args);
 extern int exec_command_increment(int args);
