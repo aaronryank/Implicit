@@ -263,11 +263,15 @@ int exec_command_lt(int args)
 	float f1 = (float) typeval(-1);
 	float f2 = (float) typeval(0);
 
-	stack[++top].val = (f1 < f2);
+	val_int(1) = (int) f1 < f2;
+	top++;
     }
     else {
-        float f = (float) typeval(0);
-        stack[++top].val = (f < args);
+        float f1 = (float) typeval(0);
+	float f2 = (float) args;
+
+        val_int(1) = (int) f < args;
+        top++;
     }
 
     return 1;
@@ -277,18 +281,22 @@ int exec_command_gt(int args)
 {
     if (!top)
 	implicit_input(implicit ? 2 : 1,TYPE_INT);
+    else if (top == 1 && implicit)
+	implicit_input(1,TYPE_INT);
 
     if (implicit)
     {
 	float f1 = (float) typeval(-1);
 	float f2 = (float) typeval(0);
 
-	val_int(1) = (f1 > f2);
-        top++;
+	val_int(1) = (int) f1 > f2;
+	top++;
     }
     else {
-        float f = (float) typeval(0);
-        val_int(1) = (f > args);
+        float f1 = (float) typeval(0);
+	float f2 = (float) args;
+
+        val_int(1) = (int) f > args;
         top++;
     }
 
