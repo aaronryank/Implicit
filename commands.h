@@ -1,3 +1,16 @@
+#ifndef _COMMANDS_H
+#define _COMMANDS_H
+
+#include "simplestack.h"
+
+/* check if stack[top+off1] is the same number type as stack[top+off2] */
+#define compatibletypes(off1,off2) \
+        ((stack[top+off1].type == TYPE_INT && stack[top+off2].type == TYPE_INT) || (stack[top+off1].type == TYPE_FLT && stack[top+off2].type == TYPE_FLT))
+
+/* get the type-specific value of stack[top+off] */
+#define typeval(off) \
+        ((stack[top+off].type == TYPE_FLT) ? stack[top+off].val_flt : (stack[top+off].type == TYPE_STR) ? strlen(stack[top+off].val_str) : stack[top+off].val)
+
 extern int exec_command_add(int args);
 extern int exec_command_increment(int args);
 extern int exec_command_sub(int args);
@@ -59,3 +72,5 @@ extern int exec_command_if_eq(int args);
 extern int exec_command_exit_thingy(int args);
 extern int exec_command_inc_mem(int args);
 extern int exec_command_dec_mem(int args);
+
+#endif // _COMMANDS_H

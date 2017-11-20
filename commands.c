@@ -1,11 +1,14 @@
 #include "simplestack.h"
+#include "commands.h"
 
 int exec_command_add(int args)
 {
     if (top == 0)
 	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && ((stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT)))
+    args = abs(args);
+
+    if (top > 1 && args == -1 && compatibletypes(-1,0))
     {
 	stack[top-1].val += stack[top].val;
 	stack[top-1].val_flt += stack[top].val_flt;
@@ -17,7 +20,6 @@ int exec_command_add(int args)
 	if (stack[top].type != TYPE_STR)
 	    stack[top].val_str[0] = stack[top].val;
 
-	args = abs(args);
 	while (args--)
 	    strcat(stack[top-1].val_str,stack[top].val_str);
 
@@ -26,8 +28,8 @@ int exec_command_add(int args)
     }
     else if (stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT)
     {
-	stack[top].val += abs(args);
-	stack[top].val_flt += abs(args);
+	stack[top].val += args;
+	stack[top].val_flt += args;
     }
 
     return 1;
@@ -72,7 +74,7 @@ int exec_command_sub(int args)
     if (top == 0)
 	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && ((stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT)))
+    if (top > 1 && args == -1 && compatibletypes(-1,0))
     {
 	if (args == -1 && top > 1) {
 	    stack[top-1].val -= stack[top].val;
@@ -81,18 +83,20 @@ int exec_command_sub(int args)
 	    top--;
 	}
 	else {
-	    stack[top].val -= abs(args);
-	    stack[top].val_flt -= (float) abs(args);
+            args = abs(args);
+	    stack[top].val -= args;
+	    stack[top].val_flt -= (float) args;
 	}
     }
     else if (args && (stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT))
     {
-	stack[top].val -= abs(args);
-	stack[top].val_flt -= abs(args);
+        args = abs(args);
+	stack[top].val -= args;
+	stack[top].val_flt -= args;
     }
     else if (stack[top].type == TYPE_STR)
     {
-	args = abs(args);
+        args = abs(args);
 	while (args--)
 	    stack[top].val_str[strlen(stack[top].val_str)-1] = 0;
     }
@@ -105,7 +109,7 @@ int exec_command_mul(int args)
     if (top == 0)
 	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && ((stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT)))
+    if (top > 1 && args == -1 && compatibletypes(-1,0))
     {
 	if (args == -1 && top > 1) {
 	    stack[top-1].val *= stack[top].val;
@@ -114,8 +118,9 @@ int exec_command_mul(int args)
 	    top--;
 	}
 	else {
-	    stack[top].val *= abs(args);
-	    stack[top].val_flt *= (float) abs(args);
+            args = abs(args);
+	    stack[top].val *= args;
+	    stack[top].val_flt *= (float) args;
 	}
     }
     else if (stack[top-1].type == TYPE_STR)
@@ -144,6 +149,7 @@ int exec_command_mul(int args)
     }
     else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
     {
+        args = abs(args);
 	stack[top].val *= args;
 	stack[top].val_flt *= args;
     }
@@ -156,7 +162,7 @@ int exec_command_div(int args)
     if (top == 0)
 	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && ((stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT) || (stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT)))
+    if (top > 1 && args == -1 && compatibletypes(-1,0))
     {
 	if (args == -1 && top > 1) {
 	    stack[top-1].val /= stack[top].val;
@@ -213,6 +219,12 @@ int exec_command_mod(int args)
 	zero(stack[top]);
 	top--;
     }
+    if (top > 1 && stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT && args == -1)
+    {
+	stack[top-1].val = fmod(stack[top-1].val,stack[top].val);
+	zero(stack[top]);
+	top--;
+    }
     else if (stack[top].type == TYPE_INT && args != -1)
     {
 	stack[top].val %= args;
@@ -253,21 +265,14 @@ int exec_command_lt(int args)
 
     if (args == -1)
     {
-	float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : (float) stack[top-1].val;
-	float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : (float) stack[top].val;
+	float f1 = (float) typeval(-1);
+	float f2 = (float) typeval(0);
 
 	stack[++top].val = (f1 < f2);
     }
     else {
-	if (stack[top].type == TYPE_INT)
-	    stack[top+1].val = (stack[top].val < args);
-	else if (stack[top].type == TYPE_FLT)
-	    stack[top+1].val = (stack[top].val_flt < args);
-	else if (stack[top].type == TYPE_STR)
-	    stack[top+1].val = (strlen(stack[top].val_str) < args);
-        else
-            return 1;
-        top++;
+        float f = (float) typeval(0);
+        stack[++top].val = (f < args);
     }
 
     return 1;
@@ -280,21 +285,14 @@ int exec_command_gt(int args)
 
     if (args == -1)
     {
-	float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : (stack[top-1].type == TYPE_STR) ? strlen(stack[top-1].val_str) : (float) stack[top-1].val;
-	float f2 = (stack[top].type == TYPE_FLT)   ? stack[top].val_flt   : (stack[top].type == TYPE_STR)   ? strlen(stack[top].val_str)   : (float) stack[top].val;
+	float f1 = (float) typeval(-1);
+	float f2 = (float) typeval(0);
 
 	stack[++top].val = (f1 > f2);
     }
     else {
-	if (stack[top].type == TYPE_INT)
-	    stack[top+1].val = (stack[top].val > args);
-	else if (stack[top].type == TYPE_FLT)
-	    stack[top+1].val = (stack[top].val_flt > args);
-	else if (stack[top].type == TYPE_STR)
-	    stack[top+1].val = (strlen(stack[top].val_str) > args);
-        else
-            return 1;
-        top++;
+        float f = (float) typeval(0);
+        stack[++top].val = (f > args);
     }
 
     return 1;
@@ -312,7 +310,14 @@ int exec_command_putchar(int args)
 
 int exec_command_exit(int args)
 {
-    if (args) {
+    int ret = 0;
+
+    if (args == -1)
+        ret = 1;
+    else
+        ret = typeval(-args);
+
+    if (ret) {
 	noprint = 1;
 	return -1;
     }
@@ -495,8 +500,8 @@ int exec_command_eq(int args)
 
     if (args == -1)
     {
-	float f1 = (stack[top-1].type == TYPE_FLT) ? stack[top-1].val_flt : stack[top-1].val;
-	float f2 = (stack[top].type == TYPE_FLT) ? stack[top].val_flt : stack[top].val;
+	float f1 = typeval(-1);
+	float f2 = typeval(0);
 
 	if (stack[top-1].type == TYPE_STR)
 	    stack[top+1].val = !strcmp(stack[top-1].val_str,stack[top].val_str);
