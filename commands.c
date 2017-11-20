@@ -270,7 +270,7 @@ int exec_command_lt(int args)
         float f1 = (float) typeval(0);
 	float f2 = (float) args;
 
-        val_int(1) = (int) f < args;
+        val_int(1) = (int) f1 < f2;
         top++;
     }
 
@@ -296,7 +296,7 @@ int exec_command_gt(int args)
         float f1 = (float) typeval(0);
 	float f2 = (float) args;
 
-        val_int(1) = (int) f > args;
+        val_int(1) = (int) f1 > f2;
         top++;
     }
 
