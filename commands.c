@@ -3,22 +3,25 @@
 
 int exec_command_add(int args)
 {
-    if (top == 0)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+    if (!top)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
 
-    args = abs(args);
-
-    if (top > 1 && args == -1 && compatibletypes(-1,0))
+    if (top > 1 && implicit && compatibletypes(-1,0))
     {
-	stack[top-1].val += stack[top].val;
-	stack[top-1].val_flt += stack[top].val_flt;
+        float f1 = (float) typeval(0);
+
+	stack[top-1].val     += (int) f1;
+	stack[top-1].val_flt += f1;
+
 	zero(stack[top]);
 	top--;
     }
-    else if (stack[top-1].type == TYPE_STR)
+    else if (type_str(-1))
     {
-	if (stack[top].type != TYPE_STR)
+	if (!type_str(0))
 	    stack[top].val_str[0] = stack[top].val;
+
+        args = abs(args);
 
 	while (args--)
 	    strcat(stack[top-1].val_str,stack[top].val_str);
@@ -26,8 +29,10 @@ int exec_command_add(int args)
 	zero(stack[top]);
 	top--;
     }
-    else if (stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT)
+    else if (type_num(0))
     {
+        args = abs(args);
+
 	stack[top].val += args;
 	stack[top].val_flt += args;
     }
@@ -37,14 +42,14 @@ int exec_command_add(int args)
 
 int exec_command_increment(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_INT);
-    else if (!top && args != -1)
+    else if (!top && !implicit)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top].type == TYPE_INT && args == -1)
+    if (type_int(0) && implicit)
 	stack[top].val++;
-    else if (stack[top].type == TYPE_STR && args != -1) {
+    else if (type_str(0) && implicit) {                    /* I forgot what this does ._. */
 	int i, l = strlen(stack[top].val_str);
 
 	if (args >= l)
@@ -71,30 +76,26 @@ int exec_command_increment(int args)
 
 int exec_command_sub(int args)
 {
-    if (top == 0)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+    if (!top)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && compatibletypes(-1,0))
+    if (top > 1 && implicit && compatibletypes(-1,0))
     {
-	if (args == -1 && top > 1) {
-	    stack[top-1].val -= stack[top].val;
-	    stack[top-1].val_flt -= stack[top].val_flt;
-	    zero(stack[top]);
-	    top--;
-	}
-	else {
-            args = abs(args);
-	    stack[top].val -= args;
-	    stack[top].val_flt -= (float) args;
-	}
+        float f1 = (float) typeval(0);
+
+	stack[top-1].val     -= (int) f1;
+	stack[top-1].val_flt -= f1;
+	zero(stack[top]);
+	top--;
     }
-    else if (args && (stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT))
+    else if (args && type_num(0))
     {
         args = abs(args);
+
 	stack[top].val -= args;
-	stack[top].val_flt -= args;
+	stack[top].val_flt -= (float) args;
     }
-    else if (stack[top].type == TYPE_STR)
+    else if (type_str(0))
     {
         args = abs(args);
 	while (args--)
@@ -106,29 +107,25 @@ int exec_command_sub(int args)
 
 int exec_command_mul(int args)
 {
-    if (top == 0)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+    if (!top)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && compatibletypes(-1,0))
+    if (top > 1 && implicit && compatibletypes(-1,0))
     {
-	if (args == -1 && top > 1) {
-	    stack[top-1].val *= stack[top].val;
-	    stack[top-1].val_flt *= stack[top].val_flt;
-	    zero(stack[top]);
-	    top--;
-	}
-	else {
-            args = abs(args);
-	    stack[top].val *= args;
-	    stack[top].val_flt *= (float) args;
-	}
+        float f1 = (float) typeval(0);
+
+	stack[top-1].val     *= (int) f1;
+	stack[top-1].val_flt *= f1;
+
+	zero(stack[top]);
+	top--;
     }
-    else if (stack[top-1].type == TYPE_STR)
+    else if (type_str(-1))
     {
-	if (args == -1)
+	if (implicit)
 	    args = 0;
 
-	if (stack[top].type == TYPE_INT)
+	if (type_int(0))
 	    stack[top].val_str[0] = stack[top].val;
 
 	int sz = strlen(stack[top].val_str);
@@ -147,7 +144,7 @@ int exec_command_mul(int args)
 	zero(stack[top]);
 	top--;
     }
-    else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
+    else if (type_num(0) && implicit)
     {
         args = abs(args);
 	stack[top].val *= args;
@@ -159,37 +156,29 @@ int exec_command_mul(int args)
 
 int exec_command_div(int args)
 {
-    if (top == 0)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+    if (!top)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
 
-    if (top > 1 && args == -1 && compatibletypes(-1,0))
+    if (top > 1 && implicit && compatibletypes(-1,0))
     {
-	if (args == -1 && top > 1) {
-	    stack[top-1].val /= stack[top].val;
-	    stack[top-1].val_flt /= stack[top].val_flt;
-	    zero(stack[top]);
-	    top--;
-	}
-	else {
-	    if (abs(args)) {
-		stack[top].val /= abs(args);
-		stack[top].val_flt /= abs(args);
-	    }
-	}
+	stack[top-1].val /= stack[top].val;
+	stack[top-1].val_flt /= stack[top].val_flt;
+	zero(stack[top]);
+	top--;
     }
-    else if ((stack[top].type == TYPE_INT || stack[top].type == TYPE_FLT) && args != -1)
+    else if (type_num(0) && !implicit)
     {
 	if (args) {
 	    stack[top].val /= args;
 	    stack[top].val_flt /= args;
 	}
     }
-    else if (stack[top-1].type == TYPE_STR)
+    else if (type_str(0))
     {
-	if (args == -1)
+	if (implicit)
 	    args = 0;
 
-	if (stack[top].type == TYPE_INT)
+	if (type_int(0))
 	    stack[top].val_str[0] = stack[top].val;
 
 	int sz = strlen(stack[top].val_str);
@@ -208,29 +197,29 @@ int exec_command_div(int args)
 
 int exec_command_mod(int args)
 {
-    if (top == 0 && args == -1)
+    if (!top && implicit)
 	implicit_input(2,TYPE_INT);
-    else if (top == 1 || (top == 0 && args != -1))
+    else if (top == 1 || (!top && !implicit))
 	implicit_input(1,TYPE_INT);
 
-    if (top > 1 && stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT && args == -1)
+    if (top > 1 && type_int(-1) && type_int(0) && implicit)
     {
 	stack[top-1].val %= stack[top].val;
 	zero(stack[top]);
 	top--;
     }
-    if (top > 1 && stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT && args == -1)
+    if (top > 1 && stack[top-1].type == TYPE_FLT && stack[top].type == TYPE_FLT && implicit)
     {
 	stack[top-1].val = fmod(stack[top-1].val,stack[top].val);
 	zero(stack[top]);
 	top--;
     }
-    else if (stack[top].type == TYPE_INT && args != -1)
+    else if (type_int(0) && !implicit)
     {
 	stack[top].val %= args;
     }
-    else if (stack[top].type == TYPE_STR) {
-	if (args == -1)
+    else if (type_str(0)) {
+	if (implicit)
 	    args = strlen(stack[top].val_str)-1;
 
 	stack[top+1].val = stack[top].val_str[args];
@@ -242,10 +231,10 @@ int exec_command_mod(int args)
 
 int exec_command_print(int args)
 {
-    if (args == -1) {
-	if (stack[top].type == TYPE_INT)
+    if (implicit) {
+	if (type_int(0))
 	    ssprintf("%d",stack[top].val);
-	else if (stack[top].type == TYPE_STR)
+	else if (type_str(0))
 	    ssprintf("%s",stack[top].val_str);
 	else if (stack[top].type == TYPE_FLT)
 	    ssprintf("%f",stack[top].val_flt);
@@ -259,11 +248,11 @@ int exec_command_print(int args)
 int exec_command_lt(int args)
 {
     if (!top)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
-    else if (top == 1 && args == -1)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
+    else if (top == 1 && implicit)
 	implicit_input(1,TYPE_INT);
 
-    if (args == -1)
+    if (implicit)
     {
 	float f1 = (float) typeval(-1);
 	float f2 = (float) typeval(0);
@@ -280,10 +269,10 @@ int exec_command_lt(int args)
 
 int exec_command_gt(int args)
 {
-    if (top == 0)
-	implicit_input(args == -1 ? 2 : 1,TYPE_INT);
+    if (!top)
+	implicit_input(implicit ? 2 : 1,TYPE_INT);
 
-    if (args == -1)
+    if (implicit)
     {
 	float f1 = (float) typeval(-1);
 	float f2 = (float) typeval(0);
@@ -300,7 +289,7 @@ int exec_command_gt(int args)
 
 int exec_command_putchar(int args)
 {
-    if (args == -1)
+    if (implicit)
 	ssprintf("%c",stack[top].val);
     else
 	ssprintf("%c",args);
@@ -312,7 +301,7 @@ int exec_command_exit(int args)
 {
     int ret = 0;
 
-    if (args == -1)
+    if (implicit)
         ret = 1;
     else
         ret = typeval(-args);
@@ -359,10 +348,10 @@ int exec_command_getstr(int args)
 
 int exec_command_duplicate(int args)
 {
-    if (args == -1 && !top)
+    if (implicit && !top)
 	implicit_input(1,TYPE_INT);
 
-    if (args == -1) {
+    if (implicit) {
 	stack[top+1].val = stack[top].val;
 	stack[top+1].val_flt = stack[top].val_flt;
 	stack[top+1].type = stack[top].type;
@@ -391,8 +380,8 @@ int exec_command_reverse(int args)
     if (!top)
 	implicit_input(1,TYPE_STR);
 
-    if (args == -1) {
-	if (stack[top].type == TYPE_INT)
+    if (implicit) {
+	if (type_int(0))
 	    stack[top].val = -stack[top].val;
 	else if (stack[top].type == TYPE_FLT)
 	    stack[top].val_flt = -stack[top].val_flt;
@@ -409,7 +398,7 @@ int exec_command_reverse(int args)
 	}
     }
     else {
-	if (stack[top].type == TYPE_STR && args) {
+	if (type_str(0) && args) {
 	    char *s = strdup(stack[top].val_str);
 	    memset(stack[top].val_str,0,STACK_STRING_SIZE);
 	    strcpy(stack[top].val_str,&s[args]);
@@ -422,21 +411,21 @@ int exec_command_reverse(int args)
 
 int exec_command_raise(int args)
 {
-    if (top == 0)
+    if (!top)
 	implicit_input(1,TYPE_INT);
 
-    if (stack[top].type == TYPE_INT) {
-	args = (args == -1) ? 2 : args;
+    if (type_int(0)) {
+	args = (implicit) ? 2 : args;
 	while (--args)
 	    stack[top].val *= stack[top].val;
     }
     else if (stack[top].type == TYPE_FLT) {
-	args = (args == -1) ? 2 : args;
+	args = (implicit) ? 2 : args;
 	while (--args)
 	    stack[top].val_flt *= stack[top].val_flt;
     }
-    else if (stack[top].type == TYPE_STR) {
-	if (args == -1) {
+    else if (type_str(0)) {
+	if (implicit) {
 	    stack[top+1].val = strlen(stack[top].val_str);
 	    top++;
 	}
@@ -450,7 +439,7 @@ int exec_command_raise(int args)
 int exec_command_stringify(int args)
 {
     int start;
-    if (args == -1)
+    if (implicit)
 	start = 0;
     else
 	start = top - args;
@@ -479,7 +468,7 @@ int exec_command_stringify(int args)
 
 int exec_command_stack_len(int args)
 {
-    if (args == -1) {
+    if (implicit) {
 	stack[top+1].val = top;
 	top++;
     }
@@ -495,15 +484,15 @@ int exec_command_stack_len(int args)
 
 int exec_command_eq(int args)
 {
-    if (top == 0)
+    if (!top)
 	implicit_input(2,TYPE_INT);
 
-    if (args == -1)
+    if (implicit)
     {
 	float f1 = typeval(-1);
 	float f2 = typeval(0);
 
-	if (stack[top-1].type == TYPE_STR)
+	if (type_str(-1))
 	    stack[top+1].val = !strcmp(stack[top-1].val_str,stack[top].val_str);
 	else
 	    stack[top+1].val = (f1 == f2);
@@ -518,7 +507,7 @@ int exec_command_eq(int args)
 
 int exec_command_swap(int args)
 {
-    if (args == -1)
+    if (implicit)
 	args = top-1;
     else
 	args++;  // to avoid swapping with 0th stack index
@@ -534,7 +523,7 @@ int exec_command_swap(int args)
 
 int exec_command_tomem(int args)
 {
-    args = (args == -1) ? 0 : args;
+    args = (implicit) ? 0 : args;
 
     while (top <= args)
 	implicit_input(1,TYPE_INT);
@@ -558,9 +547,9 @@ int exec_command_frommem(int args)
 
 int get_top_val(int args)
 {
-    int val, x = stack[top].type == TYPE_INT ? stack[top].val : stack[top].type == TYPE_FLT ? stack[top].val_flt : strlen(stack[top].val_str);
+    int val, x = type_int(0) ? stack[top].val : stack[top].type == TYPE_FLT ? stack[top].val_flt : strlen(stack[top].val_str);
 
-    if (args == -1)
+    if (implicit)
 	val = x;
     else
 	val = (args == x);
@@ -586,7 +575,7 @@ int exec_command_ifnot(int args)
 
 int exec_command_do(int args)
 {
-    if (args == -1) {
+    if (implicit) {
 	jumps[jumpnum].val = -1;
 	jumps[jumpnum].pos = ftell(in) - 1;
 	jumpnum++;
@@ -616,7 +605,7 @@ int exec_command_do(int args)
 
 int exec_command_while(int args)
 {
-    if (args == -1) {
+    if (implicit) {
 	jumps[jumpnum].val = top;
 	return do_jump();
     }
@@ -666,8 +655,8 @@ int exec_command_swap_case(int args)
     if (!top)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top].type == TYPE_INT) {
-	if (args == -1) {
+    if (type_int(0)) {
+	if (implicit) {
 	    if (isupper(stack[top].val))
 		stack[top].val = tolower(stack[top].val);
 	    else
@@ -678,9 +667,9 @@ int exec_command_swap_case(int args)
 	else if (args == 2)
 	    stack[top].val = toupper(stack[top].val);
     }
-    else if (stack[top].type == TYPE_STR) {
+    else if (type_str(0)) {
 	int i;
-	if (args == -1)
+	if (implicit)
 	{
 	    int l = strlen(stack[top].val_str);
 	    for (i = 0; i < l; i++) {
@@ -726,14 +715,14 @@ int exec_command_decrement(int args)
     if (!top)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top].type == TYPE_STR && args == -1) {
+    if (type_str(0) && implicit) {
 	int i, l = strlen(stack[top].val_str);
 	for (i = 0; i < l; i++)
 	    stack[top+i+1].val = stack[top].val_str[i];
 	zero(stack[top]);
 	top += l - 1;
     }
-    else if (stack[top].type == TYPE_INT && args == -1) {
+    else if (type_int(0) && implicit) {
 	stack[top].val--;
     }
 
@@ -745,13 +734,13 @@ int exec_command_incstr(int args)
     if (!top)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top].type == TYPE_STR) {
+    if (type_str(0)) {
 	int i, l = strlen(stack[top].val_str);
 	for (i = 0; i < l; i++)
 	    stack[top].val_str[i] += abs(args);
     }
-    else if (stack[top].type == TYPE_INT && args == -1) {
-	if (args != -1) {
+    else if (type_int(0) && implicit) {
+	if (!implicit) {
 	    if (stack[top].val == args)
 		return -1;
 	} else {
@@ -768,13 +757,13 @@ int exec_command_decstr(int args)
     if (!top)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top].type == TYPE_STR && args) {
+    if (type_str(0) && args) {
 	int i, l = strlen(stack[top].val_str);
 	for (i = 0; i < l; i++)
 	    stack[top].val_str[i] -= abs(args);
     }
-    else if (stack[top].type == TYPE_INT && args == -1) {
-	if (args != -1) {
+    else if (type_int(0) && implicit) {
+	if (!implicit) {
 	    if (stack[top].val == args) {
 		noprint = 1;
 		return -1;
@@ -794,7 +783,7 @@ int exec_command_strchar(int args)
 {
     args = abs(args);
 
-    if (stack[top].type == TYPE_STR) {
+    if (type_str(0)) {
 	char *s = strdup(stack[top].val_str);
 	memset(stack[top].val_str,0,strlen(stack[top].val_str));
 
@@ -803,7 +792,7 @@ int exec_command_strchar(int args)
 
 	stack[top].type = TYPE_STR;
     }
-    else if (stack[top].type == TYPE_INT) {
+    else if (type_int(0)) {
 	int i = 0;
 	while (args--)
 	    stack[top].val_str[i++] = stack[top].val;
@@ -820,11 +809,11 @@ int exec_command_sign(int args)
     if (!top)
 	implicit_input(1,TYPE_INT);
 
-    if (args == -1 && stack[top].type == TYPE_INT) {
+    if (implicit && type_int(0)) {
 	stack[top+1].val = stack[top].val < 0 ? -1 : stack[top].val == 0 ? 0 : 1;
 	top++;
     }
-    else if (args != -1) {
+    else if (!implicit) {
 	stack[++top].val = -args;
     }
 
@@ -833,11 +822,11 @@ int exec_command_sign(int args)
 
 int exec_command_seq(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_INT);
 
-    if (stack[top].type == TYPE_INT) {
-	if (args == -1)
+    if (type_int(0)) {
+	if (implicit)
 	    args = stack[top].val;
 
 	int i, n = args;
@@ -851,10 +840,10 @@ int exec_command_seq(int args)
 
 int exec_command_sum_stack(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_INT);
 
-    if (args == -1)
+    if (implicit)
 	args = top;
 
     int sum = 0;
@@ -870,18 +859,18 @@ int exec_command_sum_stack(int args)
 
 int exec_command_itoa(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_INT);
 
-    if (stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(0) && implicit) {
 	itoa(stack[top].val,stack[top].val_str,10);
 	stack[top].type = TYPE_STR;
     }
-    else if (stack[top].type == TYPE_STR && args == -1) {
+    else if (type_str(0) && implicit) {
 	stack[top].val = atoi(stack[top].val_str);
 	stack[top].type = TYPE_INT;
     }
-    else if (args != -1) {
+    else if (!implicit) {
 	itoa(args,stack[top+1].val_str,10);
 	stack[top+1].type = TYPE_STR;
 	top++;
@@ -892,7 +881,7 @@ int exec_command_itoa(int args)
 
 int exec_command_whitespace(int args)
 {
-    if (args == -1)
+    if (implicit)
 	args = 0;
 
     ssputchar(" \n"[args]);
@@ -903,7 +892,7 @@ int exec_command_whitespace(int args)
 
 int exec_command_consume(int args)
 {
-    if (args == -1) {
+    if (implicit) {
 	int c;
 	while ((c = getchar()) != EOF) {
 	    stack[++top].val = c;
@@ -931,10 +920,10 @@ int exec_command_consume(int args)
 
 int exec_command_log10(int args)
 {
-    if (args == -1 && !top)
+    if (implicit && !top)
 	implicit_input(1,TYPE_FLT);
 
-    if (stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(0) && implicit) {
 	float x = log10(stack[top].val);
 
 	if (!stack[top].val)
@@ -943,7 +932,7 @@ int exec_command_log10(int args)
 	stack[top].val_flt = x;
 	stack[top].type = TYPE_FLT;
     }
-    else if (stack[top].type == TYPE_FLT && args == -1) {
+    else if (stack[top].type == TYPE_FLT && implicit) {
 	float x = log10(stack[top].val_flt);
 
 	if (!stack[top].val_flt)
@@ -967,7 +956,7 @@ int exec_command_xor(int args)
     if (!top && args)
 	implicit_input(2,TYPE_INT);
 
-    if (stack[top-1].type == TYPE_INT && stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(-1) && type_int(0) && implicit) {
 	int x = stack[top-1].val ^ stack[top].val;
 	stack[top-1].val = x;
 	zero(stack[top]);
@@ -979,7 +968,7 @@ int exec_command_xor(int args)
 
 int exec_command_copy_to_mem(int args)
 {
-    args = (args == -1) ? 0 : args;
+    args = (implicit) ? 0 : args;
 
     while (top <= args)
 	implicit_input(1,TYPE_INT);
@@ -994,11 +983,11 @@ int exec_command_not(int args)
     if (!top && !args)
 	implicit_input(1,TYPE_INT);
 
-    if (stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(0) && implicit) {
 	int x = !stack[top].val;
 	stack[top].val = x;
     }
-    else if (stack[top].type == TYPE_FLT && args == -1) {
+    else if (stack[top].type == TYPE_FLT && implicit) {
 	int x = !stack[top].val_flt;
 	stack[top].val = x;
 	stack[top].type = TYPE_INT;
@@ -1025,10 +1014,10 @@ int exec_command_rev_stack(int args)
 
 int exec_command_log2(int args)
 {
-    if (args == -1 && !top)
+    if (implicit && !top)
 	implicit_input(1,TYPE_FLT);
 
-    if (stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(0) && implicit) {
 	float x = log2(stack[top].val);
 
 	if (!stack[top].val)
@@ -1037,7 +1026,7 @@ int exec_command_log2(int args)
 	stack[top].val_flt = x;
 	stack[top].type = TYPE_FLT;
     }
-    else if (stack[top].type == TYPE_FLT && args == -1) {
+    else if (stack[top].type == TYPE_FLT && implicit) {
 	float x = log2(stack[top].val_flt);
 
 	if (!stack[top].val_flt)
@@ -1058,16 +1047,16 @@ int exec_command_log2(int args)
 
 int exec_command_iswhole(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_FLT);
 
-    if (stack[top].type == TYPE_FLT && args == -1) {
+    if (stack[top].type == TYPE_FLT && implicit) {
 	int x = (floor(stack[top].val_flt) == ceil(stack[top].val_flt)) && (stack[top].val_flt >= 0);
 
 	stack[++top].val = x;
     }
-    else if (stack[top].type == TYPE_INT && args == -1) {
-	if (args != -1) {
+    else if (type_int(0) && implicit) {
+	if (!implicit) {
 	    if (stack[top].val != args) {
 		noprint = 1;
 		return -1;
@@ -1085,20 +1074,20 @@ int exec_command_iswhole(int args)
 
 int exec_command_split(int args)
 {
-    if (!top && args == -1) {
+    if (!top && implicit) {
 	implicit_input(1,TYPE_STR);
 	implicit_input(1,TYPE_INT);
     }
     else if (top == 1 && args)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top-1].type == TYPE_STR && stack[top].type == TYPE_INT && args == -1) {
+    if (type_str(-1) && type_int(0) && implicit) {
 	args = stack[top].val;
 	zero(stack[top]);
 	top--;
     }
 
-    if (stack[top].type == TYPE_STR && args > 0) {
+    if (type_str(0) && args > 0) {
 	int i, l = strlen(stack[top].val_str);
 
 	if (args >= l)
@@ -1127,7 +1116,7 @@ int exec_command_print_stack(int args)
 {
     if (!top)
     {
-	if (args == -1) {
+	if (implicit) {
 	    int c;
 	    while ((c = getchar()) != EOF) {
 		stack[++top].val = c;
@@ -1155,7 +1144,7 @@ int exec_command_print_stack(int args)
     int i;
     for (i = 1; i <= top; i++) {
 	if (stack[i].type == TYPE_INT) {
-	    if (args == -1)
+	    if (implicit)
 		ssputchar(stack[i].val);
 	    else
 		ssprintf("%d",stack[i].val);
@@ -1171,12 +1160,12 @@ int exec_command_print_stack(int args)
 
 int exec_command_strcmp(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(2,TYPE_STR);
-    else if (top == 1 && args == -1)
+    else if (top == 1 && implicit)
 	implicit_input(1,TYPE_STR);
 
-    if (stack[top-1].type == TYPE_STR && stack[top].type == TYPE_STR) {
+    if (type_str(-1) && type_str(0)) {
 	stack[top+1].val = strcmp(stack[top-1].val_str,stack[top].val_str);
 	top++;
     }
@@ -1186,10 +1175,10 @@ int exec_command_strcmp(int args)
 
 int exec_command_push_bin(int args)
 {
-    if (!top && args == -1)
+    if (!top && implicit)
 	implicit_input(1,TYPE_INT);
 
-    if (stack[top].type == TYPE_INT && args == -1) {
+    if (type_int(0) && implicit) {
 	int x = stack[top].val;
 	char *s = malloc(42*sizeof(char));
 	itoa(x,s,2);
@@ -1229,7 +1218,7 @@ int exec_command_if_eq(int args)
 
 int exec_command_exit_thingy(int args)
 {
-    if (args != -1) {
+    if (!implicit) {
 	if (stack[top].val != args)
 	    noprint = 1;
     } else {

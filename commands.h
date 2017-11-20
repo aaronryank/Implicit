@@ -11,6 +11,20 @@
 #define typeval(off) \
         ((stack[top+off].type == TYPE_FLT) ? stack[top+off].val_flt : (stack[top+off].type == TYPE_STR) ? strlen(stack[top+off].val_str) : stack[top+off].val)
 
+#define type_str(off) \
+        (stack[top+off].type == TYPE_STR)
+
+#define type_int(off) \
+        (stack[top+off].type == TYPE_INT)
+
+#define type_flt(off) \
+        (stack[top+off].type == TYPE_FLT)
+
+#define type_num(off) \
+        (stack[top+off].type == TYPE_INT || stack[top+off].type == TYPE_FLT)
+
+#define implicit (args == -1)
+
 extern int exec_command_add(int args);
 extern int exec_command_increment(int args);
 extern int exec_command_sub(int args);
