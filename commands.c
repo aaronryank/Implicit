@@ -219,6 +219,7 @@ int exec_command_mod(int args)
 	val_int(-1) = fmod(val_flt(-1),val_flt(0));
 	zero(stack[top]);
 	top--;
+	stack[top].type = TYPE_INT;
     }
     else if (type_int(0) && !implicit)
     {
