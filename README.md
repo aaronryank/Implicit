@@ -124,7 +124,7 @@ Hello, World!
 
 cat
 
-    ~+(-@~+)&
+    ~+1(-1@~+1)&
 
 string length
 
