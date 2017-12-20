@@ -1,4 +1,4 @@
-OBJ    := main.o execute.o commands.o itoa.o
+OBJ    := src/main.o src/execute.o src/commands.o src/itoa.o
 CC     := gcc
 CFLAGS := -O3 -g -Wall
 EXE    := simplestack
