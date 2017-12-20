@@ -1,4 +1,4 @@
-# Implicit [![Build Status](https://travis-ci.org/aaronryank/simplestack.svg?branch=master)](https://travis-ci.org/aaronryank/simplestack)
+# Implicit [![Build Status](https://travis-ci.org/aaronryank/Implicit.svg?branch=master)](https://travis-ci.org/aaronryank/Implicit)
 
 Implicit, a.k.a. SimpleStack, is a simple stack-based programming language capable of solving trivial tasks in a short amount of bytes. It tries its best to guess the programmer's intentions, leading to some very short code. It is also very easy to write code in.
 
